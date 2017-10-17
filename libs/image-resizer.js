@@ -1,7 +1,7 @@
-var lwip = require('lwip');
 var log = require('./log');
 var imageHelper = require('./image-helper');
 var screenSizes = imageHelper.screenTypes;
+var jimp = require('jimp');
 
 
 function ImageResizer() {
@@ -10,14 +10,16 @@ function ImageResizer() {
     var _imagePath;
     var _outputDir;
     this.loadImage = function(imagePath,callback) {
-        lwip.open(imagePath,function (err, image) {
+
+
+        jimp.read(imagePath,function (err, image) {
 
             if(err)
                 log.exitWithError(err.toString());
             if(image)
             {
                 orignalImage = image;
-                aspectRatio = image.width() / image.height();
+                aspectRatio = image.bitmap.width / image.bitmap.height;
                 _imagePath = imagePath;
                 callback(image);
             }
@@ -66,7 +68,7 @@ function ImageResizer() {
             if(err)
                 log.exitWithError(err.toString());
             else
-                image.batch().writeFile(fileWithPath,function (err) {
+                image.write(fileWithPath,function (err) {
                     if(err)
                         log.exitWithError(err.toString());
                     else

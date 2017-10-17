@@ -21,11 +21,11 @@
   "license": "ISC",
   "dependencies": {
     "colors": "^1.1.2",
-    "lwip": "0.0.9",
+    "jimp": "^0.2.28",
     "optimist": "^0.6.1"
   },
   "bin": {
     "airesize": "./bin/ai-resize.js"
-  } ,
+  },
   "preferGlobal": true
 }
