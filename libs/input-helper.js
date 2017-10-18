@@ -7,10 +7,22 @@ var i = readline.createInterface({
     output:process.stdout
 });
 
+function convertToSynonym(value) {
+    switch (value) {
+        case 'w':
+            return 'wrap_content';
+        case 'm':
+            return 'match_parent';
+        default:
+            return value;
+    }
+}
 
 exports.takeWidth = function (callback) {
     i.question('Width {match_parent | wrap_content | Number in dp}:',function (answer) {
-        if(imageHelper.isDimensionValid(answer))
+        answer = convertToSynonym(answer);
+
+            if(imageHelper.isDimensionValid(answer))
         {
             if (imageHelper.isDimenInDp(answer) && parseFloat(answer) < 2)
                 log.exitWithError('Width cannot be less than 2 dp');
@@ -24,6 +36,7 @@ exports.takeWidth = function (callback) {
 
 exports.takeHeight= function (callback) {
     i.question('Height {match_parent | wrap_content | Number in dp}:',function (answer) {
+        answer = convertToSynonym(answer);
         if(imageHelper.isDimensionValid(answer))
         {
             if (imageHelper.isDimenInDp(answer) && parseFloat(answer) < 2)
@@ -42,10 +55,6 @@ exports.isWidhtHeightValid = function (width, height) {
         log.exitWithError('Width and Height cannot be match_parent at the same time.');
     else if(width==='wrap_content' && height==='wrap_content')
         log.exitWithError('Width and Height cannot be wrap_content at the same time.');
-    else if(imageHelper.isDimenInDp(width) && height === 'match_parent')
-        log.exitWithError('If width is in dp, height cannot be match_parent. Use wrap_content for height instead.');
-    else if(imageHelper.isDimenInDp(height) && width === 'match_parent')
-        log.exitWithError('If height is in dp, width cannot be match_parent. Use wrap_content for width instead.');
     else
         return true;
 };

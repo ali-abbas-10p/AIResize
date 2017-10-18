@@ -25,6 +25,7 @@ exports.getImageNameWithExtension = function(filePath) {
 
 
 exports.isDimensionValid = function (dimen) {
+
     if (dimen === 'match_parent' || dimen === 'wrap_content')
         return true;
     else

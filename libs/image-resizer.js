@@ -58,7 +58,9 @@ function ImageResizer() {
                     else
                     {
                         var wh = imageHelper.getWidthAndHeight(aspectRatio,_widthDp,_heightDp,screenType);
-                        orignalImage.resize(wh.width,wh.height,imageResizedCallback);
+                        orignalImage
+                            .quality(100)
+                            .resize(wh.width,wh.height,jimp.AUTO,imageResizedCallback);
                     }
 
                 });
