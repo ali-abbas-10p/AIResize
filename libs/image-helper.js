@@ -29,17 +29,17 @@ exports.getImageNameWithExtension = function(filePath) {
 exports.getWidthAndHeight = function(aspectRatio,width,height,screenType) {
     switch (screenType) {
         case 'drawable-ldpi':
-            return getWidthHeight(aspectRatio,width,height,0.5,120);
-        case 'drawable-hdpi':
-            return getWidthHeight(aspectRatio,width,height,1,160);
-        case 'drawable-mdpi':
-            return getWidthHeight(aspectRatio,width,height,1.5,240);
+            return getWidthHeight(aspectRatio,width,height,0.5,120*2.5);
+        case 'drawable-hdpi': //40
+            return getWidthHeight(aspectRatio,width,height,1,160*2.5);
+        case 'drawable-mdpi': //
+            return getWidthHeight(aspectRatio,width,height,1.5,240*2.5);
         case 'drawable-xhdpi':
-            return getWidthHeight(aspectRatio,width,height,2,320);
+            return getWidthHeight(aspectRatio,width,height,2,320*2.5);
         case 'drawable-xxhdpi':
-            return getWidthHeight(aspectRatio,width,height,3,480);
+            return getWidthHeight(aspectRatio,width,height,3,480*2.5);
         case 'drawable-xxxhdpi':
-            return getWidthHeight(aspectRatio,width,height,4,640);
+            return getWidthHeight(aspectRatio,width,height,4,640*2.5);
         default:
             throw new Error('invalid screen type: ' + screenType);
     }
