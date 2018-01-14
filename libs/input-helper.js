@@ -1,6 +1,8 @@
-var readline = require('readline');
-var imageHelper = require('./image-helper');
-var log = require('./log');
+const imageHelper = require('./image-helper');
+const validationUtils = require('./validation-util');
+const Promise = require('promise');
+const readline = require('readline');
+const fs = require('fs');
 
 var i = readline.createInterface({
    input:process.stdin,
@@ -18,59 +20,61 @@ function convertToSynonym(value) {
     }
 }
 
-exports.takeWidth = function (callback) {
-    i.question('Width {match_parent | wrap_content | Number in dp}:',function (answer) {
-        answer = convertToSynonym(answer);
+exports.takeWidth = function () {
+    return new Promise(function (resolve, reject) {
+        i.question('Width {match_parent | wrap_content | Number in dp}:',function (answer) {
+            answer = convertToSynonym(answer);
 
-            if(imageHelper.isDimensionValid(answer))
-        {
-            if (imageHelper.isDimenInDp(answer) && parseFloat(answer) < 2)
-                log.exitWithError('Width cannot be less than 2 dp');
+            if(validationUtils.isDimensionValid(answer))
+            {
+                if (validationUtils.isDimensionInDp(answer) && parseFloat(answer) < 2)
+                    reject(new Error('Width cannot be less than 2 dp'));
+                else
+                    resolve(answer);
+            }
             else
-                callback(answer);
-        }
-        else
-            log.exitWithError('Invalid width. Only match_parent, wrap_content or dp in number is allowed');
-    });
-};
-
-exports.takeHeight= function (callback) {
-    i.question('Height {match_parent | wrap_content | Number in dp}:',function (answer) {
-        answer = convertToSynonym(answer);
-        if(imageHelper.isDimensionValid(answer))
-        {
-            if (imageHelper.isDimenInDp(answer) && parseFloat(answer) < 2)
-                log.exitWithError('Height cannot be less than 2 dp');
-            else
-                callback(answer);
-        }
-        else
-            log.exitWithError('Invalid height. Only match_parent, wrap_content or dp in number is allowed');
-    });
-};
-
-
-exports.isWidhtHeightValid = function (width, height) {
-    if(width==='match_parent' && height==='match_parent')
-        log.exitWithError('Width and Height cannot be match_parent at the same time.');
-    else if(width==='wrap_content' && height==='wrap_content')
-        log.exitWithError('Width and Height cannot be wrap_content at the same time.');
-    else
-        return true;
-};
-
-
-exports.getImagePath = function (callBack) {
-    var fs = require('fs');
-    var imagePath = process.argv[2];
-    if(imagePath) {
-        fs.exists(imagePath,function (exists) {
-            if(exists)
-                callBack(imagePath);
-            else
-                log.exitWithError('Image file does not exist')
+                reject(new Error('Invalid width. Only match_parent, wrap_content or dp in number is allowed'));
         });
-    }
-    else
-        log.exitWithError('Image file to resize is missing. Please use airesize [IMAGE_FILE_PATH]');
+    });
+};
+
+exports.takeHeight= function () {
+    return new Promise(function (resolve, reject) {
+        i.question('Height {match_parent | wrap_content | Number in dp}:',function (answer) {
+            answer = convertToSynonym(answer);
+            if(validationUtils.isDimensionValid(answer))
+            {
+                if (validationUtils.isDimensionInDp(answer) && parseFloat(answer) < 2)
+                    reject(new Error('Height cannot be less than 2 dp'));
+                else
+                    resolve(answer);
+            }
+            else
+                reject(new Error('Invalid height. Only match_parent, wrap_content or dp in number is allowed'));
+        });
+    });
+};
+
+
+
+
+exports.getImagePath = function () {
+    return new Promise(function (resolve, reject) {
+        var imagePath = process.argv[2];
+        if(imagePath) {
+            fs.exists(imagePath,function (exists) {
+                if(exists)
+                {
+                    if(imageHelper.isImage(imagePath))
+                        resolve(imagePath);
+                    else
+                        reject(new Error('Only image with extension .png , .jpg or .jpeg is allowed'));
+                }
+                else
+                    reject(new Error('Image file does not exist'));
+            });
+        }
+        else
+            reject(new Error('Image file to resize is missing. Please use command airesize [IMAGE_FILE_PATH]'));
+    });
 };

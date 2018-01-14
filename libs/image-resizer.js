@@ -1,85 +1,66 @@
-var log = require('./log');
-var imageHelper = require('./image-helper');
-var screenSizes = imageHelper.screenTypes;
-var jimp = require('jimp');
+const imageHelper = require('./image-helper');
+const screenSizes = imageHelper.screenTypes;
+const jimp = require('jimp');
+const Promise = require('promise');
+const path = require("path");
+const log = require("./log");
 
-
-function ImageResizer() {
-    var orignalImage;
-    var aspectRatio;
-    var _imagePath;
-    var _outputDir;
-    this.loadImage = function(imagePath,callback) {
-
-
+exports.load = function (imagePath, widthDp, heightDp) {
+    return new Promise(function (resolve, reject) {
         jimp.read(imagePath,function (err, image) {
-
             if(err)
-                log.exitWithError(err.toString());
-            if(image)
-            {
-                orignalImage = image;
-                aspectRatio = image.bitmap.width / image.bitmap.height;
-                _imagePath = imagePath;
-                callback(image);
-            }
+                reject(err);
+            else if(image)
+                resolve(new ImageResizer(image,imagePath,widthDp,heightDp));
             else
-                log.exitWithError('Image not found');
+                reject(new Error('Image not found'));
 
         });
+    });
+};
+
+function ImageResizer(image,imagePath,widthDp,heightDp) {
+    const aspectRatio = image.bitmap.width / image.bitmap.height;
+    var _outputDir = path.dirname(path.resolve(imagePath));
+
+    this.startResizing = function () {
+        resizeEachScreenType(screenSizes.pop());
     };
 
-
-    var _widthDp, _heightDp;
-    this.startResizing = function (widthDp, heightDp,outputDir) {
-        _widthDp = widthDp;
-        _heightDp = heightDp;
-        _outputDir = outputDir;
-        _resize(screenSizes.pop());
-    };
-
-    function _resize(screenType) {
+    function resizeEachScreenType(screenType) {
         if(!screenType)
-            log.success('Images resized for all screens successfully. You can find it in folder ' + _outputDir +'/'+imageHelper.getImageNameWithoutExtension(_imagePath),true);
+            log.success('Images resized for all screens successfully. You can find it in folder ' + _outputDir +'/'+imageHelper.getImageNameWithoutExtension(imagePath),true);
 
-        log.info('resizing image for screen type ' + screenType + '........');
-
-        var dirMain = _outputDir+'/'+imageHelper.getImageNameWithoutExtension(_imagePath);
+        var dirMain = _outputDir+'/'+imageHelper.getImageNameWithoutExtension(imagePath);
         var dirComp = dirMain+'/'+screenType;
-        var fileWithPath = dirComp+'/'+imageHelper.getImageNameWithExtension(_imagePath);
+        var fileWithPath = dirComp+'/'+imageHelper.getImageNameWithExtension(imagePath);
 
-        imageHelper.makeDirectory(dirMain,function(err){
-            if(err)
-                log.exitWithError(err.toString());
-            else
-                imageHelper.makeDirectory(dirComp,function (err) {
-                    if(err)
-                        log.exitWithError(err.toString());
-                    else
-                    {
-                        var wh = imageHelper.getWidthAndHeight(aspectRatio,_widthDp,_heightDp,screenType);
-                        orignalImage
-                            .quality(100)
-                            .resize(wh.width,wh.height,jimp.AUTO,imageResizedCallback);
-                    }
-
-                });
-        });
+        imageHelper.makeDirectory(dirMain)
+            .then(function () {
+                return imageHelper.makeDirectory(dirComp);
+            })
+            .then(function () {
+                var wh = imageHelper.getWidthAndHeight(aspectRatio,widthDp,heightDp,screenType);
+                log.info('resizing image for screen type ' + screenType +'<'+parseInt(wh.width)+'X'+parseInt(wh.height)+'>'+ '........');
+                image.quality(100)
+                    .resize(wh.width,wh.height,jimp.AUTO,imageResizedCallback);
+            })
+            .catch(function (err) {
+                throw err;
+            });
 
         function imageResizedCallback(err, image) {
             if(err)
-                log.exitWithError(err.toString());
+                throw err;
             else
                 image.write(fileWithPath,function (err) {
                     if(err)
-                        log.exitWithError(err.toString());
+                        throw err;
                     else
-                        _resize(screenSizes.pop());
+                        resizeEachScreenType(screenSizes.pop());
                 });
         }
 
     }
 
 }
-
-module.exports = new ImageResizer();

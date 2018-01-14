@@ -10,16 +10,22 @@ exports.exitWithError = function (error) {
 
 /**
  * @param {string} error
+ * @param {boolean} exit
  */
-exports.error = function(error) {
+exports.error = function(error,exit) {
   console.log(colors.red.bold(error));
+  if(exit)
+    process.exit();
 };
 
 /**
  * @param {string} info
+ * @param {boolean} exit
  */
-exports.info = function(info) {
+exports.info = function(info,exit) {
   console.log(info);
+    if(exit)
+        process.exit();
 };
 
 /**

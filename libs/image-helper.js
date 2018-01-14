@@ -1,5 +1,7 @@
-var fs = require('fs');
-var path = require('path');
+const fs = require('fs');
+const path = require('path');
+const Promise = require('promise');
+const validationUtils = require('./validation-util');
 
 
 exports.screenTypes = ['drawable-ldpi','drawable-hdpi','drawable-mdpi','drawable-xhdpi','drawable-xxhdpi','drawable-xxxhdpi'];
@@ -24,23 +26,6 @@ exports.getImageNameWithExtension = function(filePath) {
 
 
 
-exports.isDimensionValid = function (dimen) {
-
-    if (dimen === 'match_parent' || dimen === 'wrap_content')
-        return true;
-    else
-    {
-        // noinspection EqualityComparisonWithCoercionJS
-        return  dimen == parseFloat(dimen);
-    }
-};
-
-exports.isDimenInDp = function (dimen) {
-    // noinspection EqualityComparisonWithCoercionJS
-    return  dimen == parseFloat(dimen);
-};
-
-
 exports.getWidthAndHeight = function(aspectRatio,width,height,screenType) {
     switch (screenType) {
         case 'drawable-ldpi':
@@ -60,18 +45,19 @@ exports.getWidthAndHeight = function(aspectRatio,width,height,screenType) {
     }
 };
 
-exports.makeDirectory = function (path, callback) {
-    fs.exists(path,function (exist) {
-        if(exist)
-            callback();
-        else
-            fs.mkdir(path,callback);
+exports.makeDirectory = function (path) {
+    return new Promise(function (resolve) {
+        fs.exists(path,function (exist) {
+            if(exist)
+                resolve();
+            else
+                fs.mkdir(path,resolve);
+        });
     });
 };
 
 
 function convertToWidthHeightObject(width,height) {
-    // return [width,height]
     return {
         'width':width,
         'height':height
@@ -85,13 +71,11 @@ function getWidthHeight(aspectRatio,width,height,factor,matchParentToDp) {
     else if(height === 'match_parent')
         height = matchParentToDp/factor;
 
-    if(exports.isDimenInDp(width) && exports.isDimenInDp(height))
+    if(validationUtils.isDimensionInDp(width) && validationUtils.isDimensionInDp(height))
         return convertToWidthHeightObject(width*factor,height*factor);
-
-    else if(exports.isDimenInDp(width) && height === 'wrap_content')
+    else if(validationUtils.isDimensionInDp(width) && height === 'wrap_content')
         return convertToWidthHeightObject(width*factor,(width*factor)/aspectRatio);
-
-    else if(exports.isDimenInDp(height) && width === 'wrap_content')
+    else if(validationUtils.isDimensionInDp(height) && width === 'wrap_content')
         return convertToWidthHeightObject(height*factor*aspectRatio,height*factor);
     else
         throw new Error('width and height validation missed');
